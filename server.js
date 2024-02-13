@@ -2,32 +2,32 @@ let express = require('express');
 let bodyParser = require('body-parser');
 let path = require('path');
 let app = express();
+let port = 4000;
 app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true }));
+// cors
 
 let data = [99999];
+let fastest = 99999;
 app.use(express.static(__dirname + '/public'));
 let root = path.resolve(__dirname, 'public');
-app.get('/', (req, res) => {
+app.get('/', async(req, res) => {
     res.sendFile('block.html', { 'root': root });
 });
-app.get('/set', function(req, res) {
-    
-    x = parseInt(req.query.x)
-    data.push(x);
-    fastest = Math.min(...data);
+app.post('/set', async (req, res) => {
+    let mytime = parseInt(req.body.mytime);
+    data.push(mytime);
+    let fastest = Math.min(...data);
     console.log("fastest:" + fastest);
-    console.log("data:" + data);
+    console.log("all data:" + data);
+    res.json({fastest:fastest,mytime:mytime})
 });
-app.get('/get', function(req, res) {
+app.get('/get', async (req, res) =>{
     res.send(JSON.stringify(data));
 });
-app.get('/fastest',function(req,res){
-    res.json(fastest)
+app.get('/fastest',async(req,res)=>{
+    // need to return both fastest and last recorded time
+    let response = {fastest:fastest,mytime:data[data.length-1]}
+    res.json(JSON.stringify(response))
 })
-app.get('/pac', function(req, res) {
-    res.sendFile('/PacMan' + req.query.id + '.png', { 'root': root });
-});
 
-app.listen(4000);
-console.log("Running on port 4000");
+app.listen(port, () => console.log(`Reaction app listening on port ${port}!`));
